@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Compute Z-Depth</title>
+	  
+	<style>
+
+	</style>
+	<script src="jquery-2.1.4.min.js">
+		
+	</script>
+	<script>
+		$(document).ready(function(){
+			//IZQUIERDO
+			canvasizquierdo = document.getElementById('izquierdo');
+	    	contextizquierdo = canvasizquierdo.getContext('2d');
+	    	var imageObjizq = new Image();
+	    	imageObjizq.onload = function() {
+        		contextizquierdo.drawImage(imageObjizq, 0,0);
+      	};
+      	imageObjizq.src = 'izquierdo.jpg';
+      	//DERECHO
+			canvasderecho = document.getElementById('derecho');
+	    	contextderecho = canvasderecho.getContext('2d');
+	    	var imageObjder = new Image();
+	    	imageObjder.onload = function() {
+        		contextderecho.drawImage(imageObjder, 0,0);
+      	};
+      	imageObjder.src = 'derecho.jpg';
+      	setTimeout("trataz(64)",5000)
+		})
+		
+		function trataz(segmentacion){
+		console.log("empezando:"+segmentacion)
+			//Z
+			canvasz = document.getElementById('z');
+	    	contextz = canvasz.getContext('2d');
+	    	var matriz = new Array();
+	    	var suma;
+	    	var temp;
+	    	var amplitud = 32;
+	    	var contador = 0;
+	    	var precisionhorizontal = 1;
+	    	var variacionhorizontal = 10
+	    	var mejorcandidato = -20;
+			
+	    	for(var x = 0;x<4000;x+=segmentacion){
+	    		for(var y = 0;y<580;y+=segmentacion){
+	    			temp = 100;
+	    			mejorcandidato = -50;
+	    			sumafinal = 0;
+					contatempo = 0;
+					guardador = new Array();
+	    			for(var rastreo = 0-variacionhorizontal;rastreo<variacionhorizontal+1;rastreo+=1*precisionhorizontal){
+						contatempo++;
+						suma = 0;
+	    				var datos1 = contextizquierdo.getImageData(x,y,amplitud,amplitud);
+			 			var desglose1= datos1.data;
+			 			var datos2 = contextderecho.getImageData(x+rastreo,y,amplitud,amplitud);
+			 			var desglose2 = datos2.data;		
+							for(var i = 0;i<desglose1.length;i+=4){
+								suma += Math.abs(desglose1[i] - desglose2[i]);
+								suma += Math.abs(desglose1[i+1] - desglose2[i+1]);
+								suma += Math.abs(desglose1[i+2] - desglose2[i+2]);
+							}
+						guardador[(rastreo+variacionhorizontal)] = suma;			
+		 			}
+					
+						componente = (255-guardador.indexOf(Math.min(...guardador))*variacionhorizontal*2)
+						
+							contextz.fillStyle = "rgb("+componente+","+componente+","+componente+")";
+							if(suma < 1000){contextz.fillStyle = "rgb(50,0,0)";}
+							contextz.fillRect(x,y,segmentacion,segmentacion)
+							
+											
+	    		}
+	    		contador++;
+	    		if(contador % 10 == 0){console.log(contador/((3000*1102)/segmentacion)*100+"%")}
+	    	}
+			contextz.fillStyle = "rgb(255,0,0)";
+			contextz.fillRect(0,0,10,10)
+			if(segmentacion > 1){setTimeout("trataz("+(segmentacion/2)+")",100)}
+		}
+		function llegadaDatos(datos)
+		{
+		  
+		}
+	</script>
+	<style>
+		body{background:rgb(50,50,50);color:200,200,200;font-family:sans-serif;text-align:center;zoom:1.1;}
+		h1{color:white;text-align:center;font-size:100px;}
+		canvas{margin:auto;background:white;}
+	</style>
+</head>
+  
+<body>
+<h1>Left Eye</h1>
+<canvas id="izquierdo" width=4000px height=580px></canvas>
+<h1>Right Eye</h1>
+<canvas id="derecho" width=4000px height=580px></canvas>
+<h1>Computed Depth</h1>
+<canvas id="z" width=4000px height=580px></canvas>
+</body>
+</html>
