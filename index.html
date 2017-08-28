@@ -11,13 +11,39 @@
 		
 	</script>
 	<script>
+		var dataLeft;
+		var dataRight;
+		var imageWidth = 4000;
+		var imageHeight = 580;
 		$(document).ready(function(){
 			//IZQUIERDO
 			canvasizquierdo = document.getElementById('izquierdo');
 	    	contextizquierdo = canvasizquierdo.getContext('2d');
 	    	var imageObjizq = new Image();
 	    	imageObjizq.onload = function() {
+	    		imageWidth = this.width;
+	    		imageHeight = this.height;
         		contextizquierdo.drawImage(imageObjizq, 0,0);
+        		var pixelInfo = contextizquierdo.getImageData(0, 0, imageWidth, imageHeight).data;
+		    	dataLeft = new Array();
+		    	
+		    	//Push pixel data to more usable object
+				for (var i = 0; i < pixelInfo.length; i += 4) {
+					var x = Math.floor(i / 4) % (imageWidth);
+					
+					if(!dataLeft[x]){
+						dataLeft[x] = new Array();
+					}
+					
+					var rgba = {
+						r: pixelInfo[i],
+						g: pixelInfo[i + 1],
+						b: pixelInfo[i + 2],
+						a: pixelInfo[i + 3]
+					};
+	
+					dataLeft[x].push(rgba);
+				}
       	};
       	imageObjizq.src = 'izquierdo.jpg';
       	//DERECHO
@@ -25,7 +51,30 @@
 	    	contextderecho = canvasderecho.getContext('2d');
 	    	var imageObjder = new Image();
 	    	imageObjder.onload = function() {
+	    		imageWidth = this.width;
+	    		imageHeight = this.height;
         		contextderecho.drawImage(imageObjder, 0,0);
+        		var pixelInfo = contextderecho.getImageData(0, 0, imageWidth, imageHeight).data;
+	    	
+		    	dataRight = new Array();
+		    	
+		    	//Push pixel data to more usable object
+				for (var i = 0; i < pixelInfo.length; i += 4) {
+					var x = Math.floor(i / 4) % (imageWidth);
+					
+					if(!dataRight[x]){
+						dataRight[x] = new Array();
+					}
+					
+					var rgba = {
+						r: pixelInfo[i],
+						g: pixelInfo[i + 1],
+						b: pixelInfo[i + 2],
+						a: pixelInfo[i + 3]
+					};
+	
+					dataRight[x].push(rgba);
+				}
       	};
       	imageObjder.src = 'derecho.jpg';
       	setTimeout("trataz(64)",5000)
@@ -45,8 +94,8 @@
 	    	var variacionhorizontal = 10
 	    	var mejorcandidato = -20;
 			
-	    	for(var x = 0;x<4000;x+=segmentacion){
-	    		for(var y = 0;y<580;y+=segmentacion){
+	    	for(var x = 0;x<imageWidth;x+=segmentacion){
+	    		for(var y = 0;y<imageHeight;y+=segmentacion){
 	    			temp = 100;
 	    			mejorcandidato = -50;
 	    			sumafinal = 0;
@@ -55,15 +104,36 @@
 	    			for(var rastreo = 0-variacionhorizontal;rastreo<variacionhorizontal+1;rastreo+=1*precisionhorizontal){
 						contatempo++;
 						suma = 0;
-	    				var datos1 = contextizquierdo.getImageData(x,y,amplitud,amplitud);
-			 			var desglose1= datos1.data;
-			 			var datos2 = contextderecho.getImageData(x+rastreo,y,amplitud,amplitud);
-			 			var desglose2 = datos2.data;		
-							for(var i = 0;i<desglose1.length;i+=4){
-								suma += Math.abs(desglose1[i] - desglose2[i]);
-								suma += Math.abs(desglose1[i+1] - desglose2[i+1]);
-								suma += Math.abs(desglose1[i+2] - desglose2[i+2]);
+						for(var i = x; i < x + amplitud;i++){
+							for(var j = y; j < y + amplitud;j++){
+								var right = {
+									r: 0,
+									g:0,
+									b:0
+								}
+								
+								var left = {
+									r: 0,
+									g:0,
+									b:0
+								}
+								if(i + rastreo >= 0 && i + rastreo < imageWidth){
+									if(j<imageHeight){
+										right =  dataRight[i + rastreo][j];
+									}
+									
+								}
+								if(i < imageWidth){
+									if(j<imageHeight){
+										left = dataLeft[i][j]
+									}
+								}
+
+								suma += Math.abs(left.r - right.r);
+								suma += Math.abs(left.g - right.g);
+								suma += Math.abs(left.b - right.b);
 							}
+						}
 						guardador[(rastreo+variacionhorizontal)] = suma;			
 		 			}
 					
@@ -78,14 +148,13 @@
 	    		contador++;
 	    		if(contador % 10 == 0){console.log(contador/((3000*1102)/segmentacion)*100+"%")}
 	    	}
-			contextz.fillStyle = "rgb(255,0,0)";
-			contextz.fillRect(0,0,10,10)
 			if(segmentacion > 1){setTimeout("trataz("+(segmentacion/2)+")",100)}
 		}
 		function llegadaDatos(datos)
 		{
 		  
 		}
+		
 	</script>
 	<style>
 		body{background:rgb(50,50,50);color:200,200,200;font-family:sans-serif;text-align:center;zoom:1.1;}
