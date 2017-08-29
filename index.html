@@ -15,6 +15,7 @@
 		var dataRight;
 		var imageWidth = 4000;
 		var imageHeight = 580;
+		var maxDisparity = 20;
 		$(document).ready(function(){
 			//IZQUIERDO
 			canvasizquierdo = document.getElementById('izquierdo');
@@ -81,28 +82,26 @@
 		})
 		
 		function trataz(segmentacion){
-		console.log("empezando:"+segmentacion)
+		console.log("empezando:"+segmentacion);
+		var time = Date.now();
 			//Z
 			canvasz = document.getElementById('z');
 	    	contextz = canvasz.getContext('2d');
 	    	var matriz = new Array();
 	    	var suma;
 	    	var temp;
-	    	var amplitud = 32;
+	    	var amplitud = 16;
 	    	var contador = 0;
 	    	var precisionhorizontal = 1;
-	    	var variacionhorizontal = 10
-	    	var mejorcandidato = -20;
-			
+	    	var variacionhorizontal = 9;
+			var guardador2 = new Array();
 	    	for(var x = 0;x<imageWidth;x+=segmentacion){
 	    		for(var y = 0;y<imageHeight;y+=segmentacion){
 	    			temp = 100;
-	    			mejorcandidato = -50;
-	    			sumafinal = 0;
-					contatempo = 0;
-					guardador = new Array();
+	    			var sumafinal = 0;
+					var contatempo = 0;
+					var guardador = new Array();
 	    			for(var rastreo = 0-variacionhorizontal;rastreo<variacionhorizontal+1;rastreo+=1*precisionhorizontal){
-						contatempo++;
 						suma = 0;
 						for(var i = x; i < x + amplitud;i++){
 							for(var j = y; j < y + amplitud;j++){
@@ -134,14 +133,30 @@
 								suma += Math.abs(left.b - right.b);
 							}
 						}
-						guardador[(rastreo+variacionhorizontal)] = suma;			
+						guardador[(rastreo+variacionhorizontal)] = suma;	
+						contatempo++;
 		 			}
 					
-						componente = (255-guardador.indexOf(Math.min(...guardador))*variacionhorizontal*2)
+						var bestIndex = guardador.indexOf(Math.min(...guardador));
+						//######### Sub-pixel integration ############
+						var ix = guardador[bestIndex];
+						var vecino1 = guardador[bestIndex];
+						if(bestIndex - 1 >= 0){
+							vecino1 = guardador[bestIndex - 1];
+						}
+						var vecino2 = guardador[bestIndex];
+						if(bestIndex + 1 < guardador.length){
+							vecino2 = guardador[bestIndex + 1];
+						}
 						
-							contextz.fillStyle = "rgb("+componente+","+componente+","+componente+")";
-							if(suma < 1000){contextz.fillStyle = "rgb(50,0,0)";}
-							contextz.fillRect(x,y,segmentacion,segmentacion)
+						var subPixel = (bestIndex - 0.5 * ((vecino2 - vecino1) / (vecino1 - 2*ix + vecino2)));
+						var normalizedValue = subPixel / maxDisparity;
+						//###################################
+						var componente = Math.round((255 - 255 * normalizedValue));
+						
+						contextz.fillStyle = "rgb("+componente+","+componente+","+componente+")";
+						if(suma < 1000){contextz.fillStyle = "rgb(0,0,0)";}
+						contextz.fillRect(x,y,segmentacion,segmentacion)
 							
 											
 	    		}
@@ -149,6 +164,8 @@
 	    		if(contador % 10 == 0){console.log(contador/((3000*1102)/segmentacion)*100+"%")}
 	    	}
 			if(segmentacion > 1){setTimeout("trataz("+(segmentacion/2)+")",100)}
+			console.log('terminado en ' +(Date.now() - time) / 1000 + ' segundos')
+			
 		}
 		function llegadaDatos(datos)
 		{
