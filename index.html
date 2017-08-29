@@ -13,14 +13,14 @@
 	<script>
 		var dataLeft;
 		var dataRight;
-<<<<<<< HEAD
+
 		var imageWidth = 8020;
 		var imageHeight = 1143;
-=======
-		var imageWidth = 4000;
-		var imageHeight = 580;
+
+		var imageWidth = 8020;
+		var imageHeight = 1143;
 		var maxDisparity = 20;
->>>>>>> 2836500671d643bbd7c169786c01956070207389
+
 		$(document).ready(function(){
 			//IZQUIERDO
 			canvasizquierdo = document.getElementById('izquierdo');
@@ -51,7 +51,7 @@
 					dataLeft[x].push(rgba);
 				}
       	};
-      	imageObjizq.src = 'izquierdo.jpg';
+      	imageObjizq.src = 'nuevas/izquierdo.jpg';
       	//DERECHO
 			canvasderecho = document.getElementById('derecho');
 	    	contextderecho = canvasderecho.getContext('2d');
@@ -82,7 +82,7 @@
 					dataRight[x].push(rgba);
 				}
       	};
-      	imageObjder.src = 'derecho.jpg';
+      	imageObjder.src = 'nuevas/derecho.jpg';
       	setTimeout("trataz(64)",5000)
 		})
 		
